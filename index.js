@@ -54,23 +54,27 @@ function multipart (body, done) {
   })
   if (!body._streams.length) return done(length)
 
-  // should be parallel
-  ;(function loop (index) {
-    if (index === body._streams.length) {
-      return done(length)
-    }
-    var stream = body._streams[index]
+  var ready = 0
+  body._streams.forEach(function (stream) {
+    handle(stream, function () {
+      if (++ready === body._streams.length) {
+        done(length)
+      }
+    })
+  })
+
+  function handle (stream, done) {
     if (stream._knownLength) {
       length += stream._knownLength
-      loop(++index)
+      done()
     }
     else {
       async(stream, function (len) {
         length += len
-        loop(++index)
+        done()
       })
     }
-  }(0))
+  }
 }
 
 exports.sync = sync
