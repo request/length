@@ -1,5 +1,6 @@
 
 var fs = require('fs')
+var stream = require('stream')
 
 
 function sync (body) {
@@ -48,16 +49,19 @@ function async (body, done) {
 
 // request-multipart
 function multipart (body, done) {
-  var length = 0
+  var length = 0, streams = []
   body._items.forEach(function (item) {
     length += sync(item)
+    if (item instanceof stream.Stream) {
+      streams.push(item)
+    }
   })
-  if (!body._streams.length) return done(length)
+  if (!streams.length) return done(length)
 
   var ready = 0
-  body._streams.forEach(function (stream) {
+  streams.forEach(function (stream) {
     handle(stream, function () {
-      if (++ready === body._streams.length) {
+      if (++ready === streams.length) {
         done(length)
       }
     })
