@@ -19,31 +19,44 @@ function sync (body) {
 }
 
 function async (body, done) {
+  _async(body, function (err, length) {
+    if (err) {
+      done(err)
+    }
+    else if (!length) {
+      done(new Error('Content length not available'))
+    }
+    else {
+      done(null, parseInt(length))
+    }
+  })
+}
+
+function _async (body, done) {
   // file stream
   if (body.hasOwnProperty('fd')) {
     fs.stat(body.path, function (err, stats) {
-      if (err) return done(0)
-      done(stats.size)
+      done(err, stats.size)
     })
   }
   // http response
   else if (body.hasOwnProperty('httpVersion')) {
-    done(parseInt(body.headers['content-length']))
+    done(null, body.headers['content-length'])
   }
   // request
   else if (body.hasOwnProperty('httpModule')) {
     body.on('response', function (res) {
-      done(parseInt(res.headers['content-length']))
+      done(null, res.headers['content-length'])
     })
   }
   // request-next
   else if (body.hasOwnProperty('_client')) {
     body.on('response', function (res) {
-      done(parseInt(res.headers.get('content-length')) || 0)
+      done(null, res.headers.get('content-length'))
     })
   }
   else {
-    done(0)
+    done(new Error('Content length not available'))
   }
 }
 
@@ -56,27 +69,29 @@ function multipart (body, done) {
       streams.push(item)
     }
   })
-  if (!streams.length) return done(length)
+  if (!streams.length) return done(null, length)
 
-  var ready = 0
+  var ready = 0, error
   streams.forEach(function (stream) {
-    handle(stream, function () {
+    handle(stream, function (err, len) {
+      if (err) {
+        error = err
+      }
+      else {
+        length += len
+      }
       if (++ready === streams.length) {
-        done(length)
+        done(error, length)
       }
     })
   })
 
   function handle (stream, done) {
     if (stream._knownLength) {
-      length += stream._knownLength
-      done()
+      done(null, stream._knownLength)
     }
     else {
-      async(stream, function (len) {
-        length += len
-        done()
-      })
+      async(stream, done)
     }
   }
 }
