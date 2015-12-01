@@ -1,22 +1,23 @@
 {
-  "name": "@http/length",
+  "name": "@request/length",
   "version": "0.1.0",
   "description": "HTTP Content-Length for various body types",
 
   "keywords": [
+    "request",
     "http",
     "https",
     "content-length"
   ],
 
   "license": "MIT",
-  "homepage": "https://github.com/node-http/length",
+  "homepage": "https://github.com/request/length",
 
   "author": "Simeon Velichkov <simeonvelichkov@gmail.com> (http://simov.github.io)",
 
   "repository": {
     "type": "git",
-    "url": "https://github.com/node-http/length.git"
+    "url": "https://github.com/request/length.git"
   },
 
   "dependencies": {},
