@@ -49,7 +49,7 @@ function _async (body, done) {
       done(null, res.headers['content-length'])
     })
   }
-  // request-next
+  // @request/core
   else if (body.hasOwnProperty('_client')) {
     body.on('response', function (res) {
       done(null, res.headers.get('content-length'))
@@ -60,7 +60,7 @@ function _async (body, done) {
   }
 }
 
-// request-multipart
+// @request/multipart
 function multipart (body, done) {
   var length = 0, streams = []
   body._items.forEach(function (item) {
